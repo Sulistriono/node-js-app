@@ -1,0 +1,81 @@
+const { nanoid } = require("nanoid");
+const notes = require('./notes')
+
+const addNoteHandler = (request, h) => {
+  const { title, tags, body } = request.payload // body request
+
+  const id = nanoid(16); // untuk membuat id unik
+  const createdAt = new Date().toISOString();
+  const updatedAt = createdAt;
+
+  const newNote ={
+    title,
+    tags,
+    body,
+    id,
+    createdAt, 
+    updatedAt,
+  };//membuat properti dari objek notes
+
+
+notes.push(newNote);
+// memasukkan nilai ke dalam array notes dengan mengunakan push
+const isSuccess = notes.filter((note) => note.id === id).length > 0;
+
+if (isSuccess) {
+  const response = h.response({
+    status: 'success',
+    message: 'Catatan berhasil ditambahkan',
+    data: {
+      noteId: id,
+    },
+  });
+  response.code(201);
+  return response;
+}
+
+
+const response = h.response({
+  status: 'fail',
+  message: 'Catatan gagal ditambahkan',
+});
+
+
+response.code(500);
+return response;
+};
+
+const getAllNotesHandler = () => ({ 
+  status : 'success',
+  data: {
+    notes,
+  },
+}); // fungsi untuk mendapatkan semua catatan
+
+const getNoteByIdHandler = (request, h) => {
+  const { id } =request.params; // untuk mendapatkan nilai id
+
+  const note = notes.filter((n) => n.id === id)[0];
+  if (note !== undefined) {
+    return {
+      status: 'success',
+      data: {
+        note,
+      },
+    };
+  }
+ 
+  const response = h.response({
+    status: 'fail',
+    message: 'Catatan tidak ditemukan',
+  });
+
+  response.code(404);
+  return response;
+};
+
+
+
+module.exports = { addNoteHandler, getAllNotesHandler,getNoteByIdHandler
+};
+
